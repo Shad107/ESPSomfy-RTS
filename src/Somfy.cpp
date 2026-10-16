@@ -1465,6 +1465,15 @@ void SomfyShade::publishState() {
     this->publish("windy", isWindy);
   }
 }
+// Clears the discovery topic used before the server id was part of it. The stale record
+// keeps the same unique_id as the new one, so Home Assistant ignores the new discovery.
+static void unpublishLegacyDisco(uint8_t shadeId) {
+  char topic[128] = "";
+  snprintf(topic, sizeof(topic), "%s/cover/%d/config", settings.MQTT.discoTopic, shadeId);
+  mqtt.unpublishDisco(topic);
+  snprintf(topic, sizeof(topic), "%s/switch/%d/config", settings.MQTT.discoTopic, shadeId);
+  mqtt.unpublishDisco(topic);
+}
 void SomfyShade::publishDisco() {
   if(!mqtt.connected() || !settings.MQTT.pubDisco) return;
   char topic[128] = "";
@@ -1589,6 +1598,7 @@ void SomfyShade::publishDisco() {
   }
   
   obj["enabled_by_default"] = true;
+  unpublishLegacyDisco(this->shadeId);
   mqtt.publishDisco(topic, obj, true);  
 }
 void SomfyShade::unpublishDisco() {
@@ -1600,6 +1610,7 @@ void SomfyShade::unpublishDisco() {
   else
     snprintf(topic, sizeof(topic), "%s/switch/%s/%d/config", settings.MQTT.discoTopic, settings.serverId, this->shadeId);
   mqtt.unpublishDisco(topic);
+  unpublishLegacyDisco(this->shadeId);
 }
 void SomfyShade::publish() {
   if(mqtt.connected()) {
@@ -1670,6 +1681,7 @@ void SomfyShade::unpublish(uint8_t id) {
       mqtt.unpublishDisco(topic);
       snprintf(topic, sizeof(topic), "%s/switch/%s/%d/config", settings.MQTT.discoTopic, settings.serverId, id);
       mqtt.unpublishDisco(topic);
+      unpublishLegacyDisco(id);
     }
   }
 }
@@ -3692,8 +3704,7 @@ uint8_t SomfyShadeController::getNextGroupId() {
       }
     }
     if(!id_exists) {
-      Serial.print("Got next Group Id:");
-      Serial.print(i);
+      Serial.printf("Got next Group Id:%d\n", i);
       return i;
     }
   }
@@ -3712,8 +3723,7 @@ uint8_t SomfyShadeController::getNextRoomId() {
       }
     }
     if(!id_exists) {
-      Serial.print("Got next room Id:");
-      Serial.print(i);
+      Serial.printf("Got next room Id:%d\n", i);
       return i;
     }
   }
