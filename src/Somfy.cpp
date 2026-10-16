@@ -4802,6 +4802,29 @@ bool Transceiver::end() {
     this->disableReceive();
     return true;
 }
+// UN SEUL point de decision pour les six broches, et il renvoie le CODE dont la phrase decoule.
+// L'ordre des tests compte : deux raisons peuvent s'appliquer a la fois -- sur ESP32, GPIO35 est
+// input-only ET au-dessus de 31 -- et le motif annonce doit rester le meme quel que soit
+// l'appelant. D'ou aussi la phrase construite ici, et nulle part ailleurs.
+const char *radioPinFault(int v, radio_pin_role role) {
+  switch(role) {
+    case radio_pin_role::tx_bitbang:
+      if(!isUsableOutputPin(v)) return "RADIO_PIN_NOT_OUTPUT";
+      if(v > 31) return "RADIO_PIN_TX_TOO_HIGH";
+      return nullptr;
+    case radio_pin_role::spi_out:
+      return isUsableOutputPin(v) ? nullptr : "RADIO_PIN_NOT_OUTPUT";
+    case radio_pin_role::spi_in:
+      return isUsableInputPin(v) ? nullptr : "RADIO_PIN_NOT_INPUT";
+  }
+  return "RADIO_PIN_INVALID";
+}
+const char *radioPinFaultText(const char *code) {
+  if(strcmp(code, "RADIO_PIN_NOT_OUTPUT") == 0) return "not usable as an output";
+  if(strcmp(code, "RADIO_PIN_NOT_INPUT") == 0) return "not usable as an input";
+  if(strcmp(code, "RADIO_PIN_TX_TOO_HIGH") == 0) return "above GPIO31, unusable for the bit-banged TX line";
+  return "not a valid pin for this line";
+}
 void transceiver_config_t::fromJSON(JsonObject& obj) {
     //Serial.print("Deserialize Radio JSON ");
     // Gardes en !isNull() et non en containsKey() : containsKey() est VRAI pour une clé portant un
