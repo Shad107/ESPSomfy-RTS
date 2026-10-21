@@ -3055,6 +3055,7 @@ class Somfy {
         { val: 7, label: 'XIAO ESP32 S3', showGPIO: false, chips: ['s3'], pins: { SCKPin: 7, CSNPin: 6, MOSIPin: 9, MISOPin: 8, TXPin: 3, RXPin: 4 } },
         { val: 8, label: 'XIAO ESP32 C3', showGPIO: false, chips: ['c3'], pins: { SCKPin: 8, CSNPin: 6, MOSIPin: 10, MISOPin: 9, TXPin: 3, RXPin: 4 } },
         { val: 9, label: 'ESP32c3 SuperMini', showGPIO: false, chips: ['c3'], pins: { SCKPin: 4, CSNPin: 7, MOSIPin: 6, MISOPin: 5, TXPin: 21, RXPin: 20 } },
+        { val: 10, label: 'ISNO Super', showGPIO: false, chips: ['s3'], pins: { SCKPin: 4, CSNPin: 15, MOSIPin: 6, MISOPin: 5, TXPin: 10, RXPin: 11 } },
         { val: 255, label: 'MANUAL_SETTINGS', showGPIO: true }
     ];
 
